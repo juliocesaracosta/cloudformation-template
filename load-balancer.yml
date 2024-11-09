@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create an Application Load Balancer with two rules and one target group
+
+Resources:
+  SGLBPromociones:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Allow HTTP traffic
+      VpcId: vpc-0fb4c0007aac86efa
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: "0.0.0.0/0"
+
+  LBPromociones:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Name: LBPromociones
+      Subnets:
+        - subnet-00b85d13abda61a84
+        - subnet-022d47028a05f3202
+      SecurityGroups:
+        - !Ref SGLBPromociones
+      Scheme: internet-facing
+      IpAddressType: ipv4
+      Type: application
+
+  TGLBPromociones:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      Name: TGLBPromociones
+      VpcId: vpc-0fb4c0007aac86efa
+      Protocol: HTTP
+      Port: 80
+      HealthCheckProtocol: HTTP
+      HealthCheckPort: "80"
+      HealthCheckPath: /
+      TargetType: instance
+
+  ListenerLBPromociones:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      LoadBalancerArn: !Ref LBPromociones
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TGLBPromociones

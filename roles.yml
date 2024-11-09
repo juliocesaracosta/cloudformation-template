@@ -1,0 +1,107 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  NombrePoliticaMetricasPromociones:
+    Description: ''
+    Type: String
+    Default: PoliticaMetricasPromociones
+  
+  NombreIamRolAdministradorElasticBeanstalkPromociones:
+    Description: ''
+    Type: String
+    Default: RolAdministradorBeanstalkPromociones
+
+  NombreIamRolCodeBuildPromociones:
+    Description: ''
+    Type: String
+    Default: RolCodeBuildPromociones
+
+  NombrePoliticaCodeBuildPromociones:
+    Description: ''
+    Type: String
+    Default: PoliticaCodeBuildPromociones
+
+Resources:
+  IamRolAdministradorBeanstalkPromociones:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Ref NombreIamRolAdministradorElasticBeanstalkPromociones
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkManagedUpdatesCustomerRolePolicy
+        - arn:aws:iam::aws:policy/AWSElasticBeanstalkMulticontainerDocker
+        - arn:aws:iam::aws:policy/service-role/AWSElasticBeanstalkEnhancedHealth
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: elasticbeanstalk.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Ref NombrePoliticaMetricasPromociones
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudwatch:GetMetricData
+                  - cloudformation:GetTemplate
+                  - cloudformation:DescribeStackResource
+                  - cloudwatch:ListMetrics
+                Resource: '*'
+
+  IamRolCodeBuildPromociones:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Ref NombreIamRolCodeBuildPromociones
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: elasticbeanstalk.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Ref NombrePoliticaCodeBuildPromociones
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - codebuild:CreateReportGroup
+                  - codebuild:CreateReport
+                  - logs:CreateLogStream
+                  - codebuild:UpdateReport
+                  - codebuild:BatchPutCodeCoverages
+                  - codecommit:GitPull
+                  - codebuild:BatchPutTestCases
+                  - logs:CreateLogGroup
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/CodeBuildAdmonPromotions-*
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/CodeBuildAdmonPromotions
+                  - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/CodeBuildAdmonPromotions:*
+                  - !Sub arn:aws:codecommit:${AWS::Region}:${AWS::AccountId}:my.repo-123
+              - Effect: Allow
+                Action:
+                  - ecr:GetDownloadUrlForLayer
+                  - ecr:GetAuthorizationToken
+                  - s3:ListBucket
+                  - ecr:UploadLayerPart
+                  - ecr:ListImages
+                  - s3:GetBucketAcl
+                  - ecr:PutImage
+                  - s3:PutObject
+                  - s3:GetObject
+                  - ecr:BatchGetImage
+                  - ecr:CompleteLayerUpload
+                  - ecr:DescribeImages
+                  - ecr:InitiateLayerUpload
+                  - s3:GetBucketLocation
+                  - ecr:BatchCheckLayerAvailability
+                  - s3:GetObjectVersion
+                Resource: '*'
+
+
+  

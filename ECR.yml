@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Parameters:
+  nombreRepositorioECR:
+    Description: Se alojan las imagenes del pipepeline
+    Type: String
+    Default: my.repo-123
+    
+Resources:
+  RepositoryImagenesServiciosPromociones:
+    Type: AWS::ECR::Repository
+    Properties:
+      EmptyOnDelete: true
+      ImageTagMutability: MUTABLE
+      RepositoryName: !Ref nombreRepositorioECR
